@@ -2,7 +2,24 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+
 #define SIZE 8
+#define TEXT_BLACK "\x1b[30m"
+#define TEXT_WHITE "\x1b[37m"
+#define TEXT_CYAN "\x1b[36m"
+#define TEXT_HIDDEN "\x1b[8m"
+#define BG_CYAN "\x1b[46m"
+#define BG_BLACK "\x1b[40m"
+#define BG_WHITE "\x1b[47m"
+#define BG_RED "\x1b[41m"
+#define RESET "\x1b[0m"
+
+#ifdef _WIN32
+#include <conio.h>
+#else
+#include <stdio.h>
+#define clrscr() printf("\e[1;1H\e[2J")
+#endif
 
 enum Color {
     BLANK = 0,
@@ -26,12 +43,7 @@ typedef struct {
 } piece_t;
 
 typedef struct {
-    int id;
-    piece_t *pieces[8];
-} row_t;
-
-typedef struct {
-    row_t *rows;
+    piece_t pieces[SIZE][SIZE];
 } board_t;
 
 board_t *init_board() {
@@ -48,25 +60,19 @@ board_t *init_board() {
         {{ROOK, WHITE}, {KNIGHT, WHITE}, {BISHOP, WHITE}, {KING, WHITE}, {QUEEN, WHITE}, {BISHOP, WHITE}, {KNIGHT, WHITE}, {ROOK, WHITE}},
     };
 
-    b->rows = (row_t *)malloc(sizeof(row_t *) * SIZE);
-    for (int i = 0; i < SIZE; i++) {
-        b->rows[i].id = i + 1;
-        for (int j = 0; j < SIZE; j++) {
-            b->rows[i].pieces[j] = (piece_t *)malloc(sizeof(piece_t));
-            b->rows[i].pieces[j]->type = pieces[i][j].type;
-            b->rows[i].pieces[j]->color = pieces[i][j].color;
+    for (int i = 0; i < SIZE; i++)
+    {
+        for (int j = 0; j < SIZE; j++)
+        {
+            b->pieces[i][j] = pieces[i][j];
         }
     }
 
     return b;
 }
 
-char *get_piece_color(piece_t *p) {
-    return p->color == BLACK ? "B" : p->color == WHITE ? "W" : " ";
-}
-
-char *get_piece_type(piece_t *p) {
-    switch (p->type) {
+char *get_piece_type(piece_t p) {
+    switch (p.type) {
         case PAWN: return "P";
         case ROOK: return "R";
         case BISHOP: return "B";
@@ -77,16 +83,51 @@ char *get_piece_type(piece_t *p) {
     }
 }
 
+void color_square(int x, int y)
+{
+    if (y % 2 == 0) 
+        if (x % 2 == 0)
+            printf(BG_WHITE);
+        else
+            printf(BG_CYAN);
+    else
+        if (x % 2 == 0)
+            printf(BG_CYAN);
+        else
+            printf(BG_WHITE);
+}
+
+void color_piece(piece_t p)
+{
+    char *color = p.color == BLACK ? TEXT_BLACK : p.color == WHITE ? TEXT_WHITE : TEXT_HIDDEN;
+
+    printf("%s", color);
+}
+
 void print_board(board_t *board) {
-    row_t *rows = board->rows;
-    for (int i = 0; i < SIZE; i++) {
-        printf("%d ", rows[i].id);
-        for (int j = 0; j < SIZE; j++) {
-            piece_t *piece = rows[i].pieces[j];
-            printf("%s%s ", get_piece_color(piece), get_piece_type(piece));
+    clrscr();
+    printf(TEXT_CYAN BG_RED "    a  b  c  d  e  f  g  h    \n");
+    for (int y = 0; y < SIZE; y++)
+    {
+        printf(TEXT_CYAN BG_RED " %d %s", y + 1, RESET);
+        for (int x = 0; x < SIZE; x++)
+        {
+            piece_t piece = board->pieces[y][x];
+            char *type = get_piece_type(piece);
+            
+            color_square(x, y);
+            color_piece(piece);
+
+            printf(" %s %s", type, RESET);
         }
-        printf("\n");
+        printf(TEXT_CYAN BG_RED " %d %s\n", y + 1, RESET);
     }
+    printf(TEXT_CYAN BG_RED "    a  b  c  d  e  f  g  h    \n" RESET);
+}
+
+void move_piece(piece_t piece, int x, int y)
+{
+    
 }
 
 int main() {
