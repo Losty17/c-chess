@@ -7,9 +7,9 @@
       "request": "launch",
       "args": [],
       "stopAtEntry": false,
-      "externalConsole": false,
-      "cwd": "/workspaces/c-chess",
-      "program": "/workspaces/c-chess/build/Debug/outDebug",
+      "externalConsole": true,
+      "cwd": "c:/Users/vinik/projetos/c-chess",
+      "program": "c:/Users/vinik/projetos/c-chess/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
