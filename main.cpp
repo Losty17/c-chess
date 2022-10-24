@@ -13,14 +13,9 @@
 #define BG_RED "\x1b[41m"
 #define RESET "\x1b[0m"
 
-#ifdef _WIN32
-#include <conio.h>
-#else
-#include <stdio.h>
-#define clrscr() printf("\e[1;1H\e[2J")
-#endif
-
 using namespace std;
+
+#define clrscr() cout << "\033[1;1H\033[2J"
 
 namespace chess
 {
@@ -251,6 +246,7 @@ namespace chess
 
         void print()
         {
+            clrscr();
             this->print_columns();
 
             for (auto i = 0; i < SIZE; i++)
@@ -270,41 +266,59 @@ namespace chess
         {
             auto col = this->column_to_int(column);
 
-            this->rows[piece->row]->pieces[piece->col] = new Piece(TRANSPARENT, EMPTY, piece->row, piece->col);
-            this->rows[row - 1]->pieces[col] = piece;
-            piece->col = col;
-            piece->row = row - 1;
+            if (this->validate_move(piece, col, row))
+            {
+                this->rows[piece->row]->pieces[piece->col] = new Piece(TRANSPARENT, EMPTY, piece->row, piece->col);
+                this->rows[row - 1]->pieces[col] = piece;
+                piece->col = col;
+                piece->row = row - 1;
+            }
         }
 
+        /**
+         * @brief Validates the desired move
+         *
+         * @param piece The piece to be moved
+         * @param column The target column
+         * @param row The target row
+         * @return true
+         * @return false
+         */
         bool validate_move(Piece *piece, char column, int row)
         {
-            auto col = this->column_to_int(column);
+            // auto col = this->column_to_int(column);
 
-            if (piece->type == PAWN)
+            switch (piece->type)
+            {
+            case PAWN:
             {
                 if (piece->color == WHITE)
                 {
-                    if (piece->row == 2)
+                    if (piece->row == 6)
                     {
-                        if (row == 4)
-                        {
-                            if (col == piece->col)
-                            {
-                                if (this->rows[row - 1]->pieces[col]->type == EMPTY)
-                                    return true;
-                            }
-                        }
+                        if (row - 1 == piece->row - 2 || row - 1 == piece->row - 1)
+                            return true;
                     }
-
-                    if (row == piece->row + 1)
+                    else if (row - 1 == piece->row - 1)
+                        return true;
+                }
+                else
+                {
+                    if (piece->row == 1)
                     {
-                        if (col == piece->col)
-                        {
-                            if (this->rows[row - 1]->pieces[col]->type == EMPTY)
-                                return true;
-                        }
+                        if (row == piece->row + 2 || row == piece->row + 1)
+                            return true;
+                    }
+                    else if (row == piece->row + 1)
+                    {
+                        return true;
                     }
                 }
+                break;
+
+            default:
+                return false;
+            }
             }
 
             return false;
@@ -329,20 +343,22 @@ using namespace chess;
 int main()
 {
     Board *board = new Board();
-    board->print();
 
-    char column;
-    int row;
+    do
+    {
+        board->print();
 
-    cout << "Select a piece: ";
-    cin >> column >> row;
+        char column;
+        int row;
 
-    Piece *piece = board->get_piece(column, row);
+        cout << "Select a piece: ";
+        cin >> column >> row;
 
-    cout << "Move to: ";
-    cin >> column >> row;
+        Piece *piece = board->get_piece(column, row);
 
-    board->move(piece, column, row);
-    board->print();
-    cin >> column >> row;
+        cout << "Move to: ";
+        cin >> column >> row;
+
+        board->move(piece, column, row);
+    } while (true);
 }
